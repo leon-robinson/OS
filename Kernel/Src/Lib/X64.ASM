@@ -1,0 +1,7 @@
+SECTION .text
+
+GLOBAL GetCR2
+
+GetCR2:
+	MOV RAX, CR2
+	RET

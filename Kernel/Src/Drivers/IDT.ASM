@@ -1,0 +1,184 @@
+
+SECTION .text
+
+EXTERN InterruptHandler
+
+GLOBAL Vector0
+GLOBAL Vector1
+GLOBAL Vector2
+GLOBAL Vector3
+GLOBAL Vector4
+GLOBAL Vector5
+GLOBAL Vector6
+GLOBAL Vector7
+GLOBAL Vector8
+GLOBAL Vector10
+GLOBAL Vector11
+GLOBAL Vector12
+GLOBAL Vector13
+GLOBAL Vector14
+GLOBAL Vector16
+GLOBAL Vector17
+GLOBAL Vector18
+GLOBAL Vector19
+GLOBAL Vector32
+GLOBAL Vector33
+GLOBAL Vector39
+GLOBAL Vector44
+
+GLOBAL EOI
+GLOBAL ReadISR
+GLOBAL LoadIDT
+
+Trap:
+	PUSH RAX
+	PUSH RBX
+	PUSH RCX
+	PUSH RDX
+	PUSH RSI
+	PUSH RDI
+	PUSH RBP
+	PUSH R8
+	PUSH R9
+	PUSH R10
+	PUSH R11
+	PUSH R12
+	PUSH R13
+	PUSH R14
+	PUSH R15
+
+	MOV RDI, RSP
+	CALL InterruptHandler
+
+TrapReturn:
+	POP R15
+	POP R14
+	POP R13
+	POP R12
+	POP R11
+	POP R10
+	POP R9
+	POP R8
+	POP RBP
+	POP RDI
+	POP RSI
+	POP RDX
+	POP RCX
+	POP RBX
+	POP RAX
+
+	ADD RSP, 16
+	IRETQ
+
+Vector0:
+	PUSH 0
+	PUSH 0
+	JMP Trap
+
+Vector1:
+	PUSH 0
+	PUSH 1
+	JMP Trap
+
+Vector2:
+	PUSH 0
+	PUSH 2
+	JMP Trap
+
+Vector3:
+	PUSH 0
+	PUSH 3
+	JMP Trap
+
+Vector4:
+	PUSH 0
+	PUSH 4
+	JMP Trap
+
+Vector5:
+	PUSH 0
+	PUSH 5
+	JMP Trap
+
+Vector6:
+	PUSH 0
+	PUSH 6
+	JMP Trap
+
+Vector7:
+	PUSH 0
+	PUSH 7
+	JMP Trap
+
+Vector8:
+	PUSH 8
+	JMP Trap
+
+Vector10:
+	PUSH 10
+	JMP Trap
+
+Vector11:
+	PUSH 11
+	JMP Trap
+
+Vector12:
+	PUSH 12
+	JMP Trap
+
+Vector13:
+	PUSH 13
+	JMP Trap
+
+Vector14:
+	PUSH 14
+	JMP Trap
+
+Vector16:
+	PUSH 0
+	PUSH 16
+	JMP Trap
+
+Vector17:
+	PUSH 17
+	JMP Trap
+
+Vector18:
+	PUSH 0
+	PUSH 18
+	JMP Trap
+
+Vector19:
+	PUSH 0
+	PUSH 19
+	JMP Trap
+
+Vector32:
+	PUSH 0
+	PUSH 32
+	JMP Trap
+
+Vector33:
+	PUSH 0
+	PUSH 33
+	JMP Trap
+
+Vector39:
+	PUSH 0
+	PUSH 39
+	JMP Trap
+
+Vector44:
+	PUSH 0
+	PUSH 44
+	JMP Trap
+
+ReadISR:
+	MOV AL, 11
+	OUT 20H, AL
+	IN AL, 20H
+	RET
+
+LoadIDT:
+	LIDT [RDI]
+	RET

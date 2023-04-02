@@ -1,0 +1,93 @@
+SECTION .text
+
+GLOBAL Memcpy
+
+; RDI = dest
+; RSI = src
+; RDX = count
+Memcpy:
+	PUSH RDI
+	PUSH RSI
+	PUSH RDX
+	PUSH RCX
+
+	CLD
+	MOV RCX, RDX
+	REP MOVSB
+
+	POP RCX
+	POP RDX
+	POP RSI
+	POP RDI
+
+	RET
+
+GLOBAL Memmove
+Memmove:
+	CLD
+	CMP RSI, RDI
+	JAE .COPY
+	MOV R8, RSI
+	ADD R8, RDX
+	CMP R8, RDI
+	JBE .COPY
+
+.OVERLAP:
+	STD
+	ADD RDI, RDX
+	ADD RSI, RDX
+	DEC RDI
+	DEC RSI
+.COPY:
+	MOV RCX, RDX
+	REP MOVSB
+	CLD
+	RET
+
+
+GLOBAL Memset
+
+; RDI = dest
+; RSI = val
+; RDX = count
+Memset:
+	PUSH RDI
+	PUSH RSI
+	PUSH RDX
+	PUSH RCX
+
+	CLD
+	MOV RAX, RSI
+	MOV RCX, RDX
+	REP STOSB
+
+	POP RCX
+	POP RDX
+	POP RSI
+	POP RDI
+
+	RET
+
+GLOBAL MemsetU32
+
+; RDI = dest
+; RSI = val
+; RDX = count
+MemsetU32:
+	PUSH RDI
+	PUSH RSI
+	PUSH RDX
+	PUSH RCX
+
+	CLD
+	MOV RAX, RSI
+	MOV RCX, RDX
+	REP STOSD
+
+	POP RCX
+	POP RDX
+	POP RSI
+	POP RDI
+
+	RET
+

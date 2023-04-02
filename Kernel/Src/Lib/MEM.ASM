@@ -44,6 +44,15 @@ Memmove:
 	CLD
 	RET
 
+GLOBAL Memcmp
+Memcmp:
+	CLD
+	XOR RAX, RAX
+	MOV RCX, RDX
+	REPE CMPSB
+	SETNZ AL
+	RET
+
 
 GLOBAL Memset
 

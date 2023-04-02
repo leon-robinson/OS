@@ -3,7 +3,7 @@
 
 #include <Lib/TERMINAL.H>
 
-static char keyChars[] = {
+static char key_chars[] = {
 	'\0','\0','1','2','3','4','5','6','7','8','9','0','-','=','\b',' ',
 	'q','w','e','r','t','y','u','i','o','p','[',']','\n','\0',
 	'a','s','d','f','g','h','j','k','l',';','\'','`','\0','\\',
@@ -16,6 +16,12 @@ static char keyChars[] = {
 void KeyboardHandler(u8 key) {
 	if (key & 0x80) return;
 
-	char s[2] = {keyChars[key], '\0'};
-	Print(s);
+	char c = key_chars[key];
+
+	if (c == '\n')
+		Enter();
+	else {
+		char s[2] = {c, '\0'};
+		Print(s);
+	}
 }

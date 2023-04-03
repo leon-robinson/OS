@@ -57,6 +57,39 @@ void Main(struct BootInfo *boot_info) {
 
 	PS2MouseInit();
 
+	struct MemoryInfo *memory_info = boot_info->memory_info;
+	u64 count = memory_info->entry_count;
+	struct E820 *entries = (struct E820 *)&memory_info->entries;
+	u64 total_mem = 0;
+
+	for (u64 i = 0; i < count; i++) {
+		struct E820 entry = entries[i];
+
+		u64 addr = entry.address;
+		u64 final_addr = addr + entry.length;
+		u32 type = entry.type;
+
+		char buf[16];
+		ItoaU64(addr, buf, 16);
+		Print(buf);
+		ItoaU64(final_addr, buf, 16);
+		Print("-");
+		Print(buf);
+		Print(": ");
+		ItoaU64(type, buf, 16);
+		Print(buf);
+		Print("\n");
+
+		total_mem += entry.length;
+	}
+
+	total_mem /= 1024 * 1024;
+	char buf[16];
+	ItoaU64(total_mem, buf, 10);
+	Print("Total memory: ");
+	Print(buf);
+	Print("MiB\n\n");
+
 	for (; ; ) {
 		FillScreen(DEFAULT_COLOR);
 		TerminalUpdate();

@@ -11,6 +11,18 @@ struct VBEInfo {
 	u32 pitch;
 } __attribute__((packed));
 
+struct E820 {
+	u64 address;
+	u64 length;
+	u32 type;
+} __attribute__((packed));
+
+struct MemoryInfo {
+	u64 entry_count;
+	struct E820 *entries;
+} __attribute__((packed));
+
 struct BootInfo {
 	struct VBEInfo *vbe_info;
+	struct MemoryInfo *memory_info;
 } __attribute__((packed));

@@ -46,7 +46,17 @@ InitializeCS:
 	CALL EnableA20Line
 	JC Error.A20Fail
 
+	MOV EDI, 1000H
+	CALL FetchMemInfo
+
 	CALL EnterUnrealMode
+
+	; Copy memory map up.
+	CLD
+	MOV ESI, 1000H
+	MOV EDI, 20000H
+	MOV ECX, 5000H
+	A32 REP MOVSB
 
 	POP EDX ; Restore boot drive ID.
 	CALL GetFSBlocks ; <- ECX
@@ -412,6 +422,34 @@ VBESetMode:
 .OFFSET: DW 0
 .MODE: DW 0
 
+; EDI = address
+FetchMemInfo:
+	MOV DWORD[.InitAddr], EDI
+	MOV EAX, 0E820H
+	MOV EDX, 534D4150H
+	MOV ECX, 20
+	MOV DWORD[ES:EDI], 0
+	ADD EDI, 8
+	XOR EBX, EBX
+	INT 15H
+	JC Error.MemInfo
+.LOOP:
+	ADD EDI, 20
+	MOV EAX, DWORD[ES:.InitAddr]
+	INC DWORD[ES:EAX]
+	TEST EBX, EBX
+	JZ .DONE
+
+	MOV EAX, 0E820H
+	MOV EDX, 534D4150H
+	MOV ECX, 20
+	INT 15H
+	JNC .LOOP
+.DONE:
+	RET
+
+.InitAddr: DD 0
+
 ; ES:BP -> error string
 ; CX = error string length
 Error:
@@ -443,6 +481,10 @@ Error:
 .Video:
 	MOV BP, VideoError
 	MOV CX, VideoErrorLen
+	JMP Error
+.MemInfo:
+	MOV BP, MemInfoError
+	MOV CX, MemInfoErrorLen
 	JMP Error
 
 %define PAGE_PRESENT (1 << 0)
@@ -538,6 +580,8 @@ ReadError: DB "ERROR: FAILED TO READ FROM BOOT DISK."
 ReadErrorLen: EQU $-ReadError
 VideoError: DB "ERROR: FAILED TO SET VIDEO MODE."
 VideoErrorLen: EQU $-VideoError
+MemInfoError: DB "ERROR: FAILED TO GET MEMORY INFO."
+MemInfoErrorLen: EQU $-MemInfoError
 
 ReadPacket:
 	  DB 10H
@@ -875,7 +919,12 @@ LongMode:
 	CALL LoadKernel
 
 	MOV RDI, 0x6000 ; Boot Info Address, first argument for Kernel Main.
-	MOV DWORD[RDI], VBEInfo
+	PUSH RDI
 
+	MOV DWORD[RDI], VBEInfo
+	ADD RDI, 8
+	MOV DWORD[RDI], 20000H ; Memory map address.
+
+	POP RDI
 	MOV RAX, 0xffffffff80000000
 	JMP RAX

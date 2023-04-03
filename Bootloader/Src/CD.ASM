@@ -22,6 +22,16 @@ SkipBootInfo:
 	CLD
 	JMP 0000H:InitializeCS
 
+%macro  TryVideoMode 2+
+
+	MOV AX, %1
+	MOV BX, %2
+	MOV CL, 32
+	CALL VBESetMode
+	JNC .VIDEO_DONE
+
+%endmacro
+
 InitializeCS:
 	XOR SI, SI
 	MOV DS, SI
@@ -62,12 +72,16 @@ InitializeCS:
 	CALL GetFSBlocks ; <- ECX
 	CALL LoadFS
 
-	MOV AX, 640
-	MOV BX, 480
-	MOV CL, 32
-	CALL VBESetMode
-	JC Error.Video
+	TryVideoMode 1920,1080
+	TryVideoMode 1360,768
+	TryVideoMode 1280,1024
+	TryVideoMode 1024,768
+	TryVideoMode 800,600
+	TryVideoMode 640,480
 
+	JMP Error.Video
+
+.VIDEO_DONE:
 	JMP EnterLongMode
 
 
@@ -916,14 +930,15 @@ LongMode:
 	MOV RDX, QWORD[PML4]
 	MOV CR3, RDX
 
-	CALL LoadKernel
+	CALL LoadKernel ; RAX = Kernel size
 
 	MOV RDI, 0x6000 ; Boot Info Address, first argument for Kernel Main.
 	PUSH RDI
 
-	MOV DWORD[RDI], VBEInfo
-	ADD RDI, 8
-	MOV DWORD[RDI], 20000H ; Memory map address.
+	MOV QWORD[RDI], VBEInfo
+	MOV QWORD[RDI+8], 20000H ; Memory map address.
+	MOV QWORD[RDI+16], RAX ; Kernel size.
+	MOV QWORD[RDI+24], 400000H ; Kernel start physical.
 
 	POP RDI
 	MOV RAX, 0xffffffff80000000

@@ -7,6 +7,7 @@
 
 void VBEInit(struct VBEInfo *vbe_info);
 void VBEUpdate();
+void VBEAllocBuffers();
 u16 GetWidth();
 u16 GetHeight();
 u16 GetPitch();

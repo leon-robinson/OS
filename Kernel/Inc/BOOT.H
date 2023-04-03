@@ -25,4 +25,6 @@ struct MemoryInfo {
 struct BootInfo {
 	struct VBEInfo *vbe_info;
 	struct MemoryInfo *memory_info;
+	u64 kernel_size;
+	u64 kernel_start;
 } __attribute__((packed));

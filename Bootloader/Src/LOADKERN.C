@@ -45,7 +45,7 @@ static void check(l9660_status stat) {
 	}
 }
 
-void LoadKernel() {
+uint64_t LoadKernel() {
 	check(l9660_openfs(&fs, readsect));
 	check(l9660_fs_open_root(&dir, &fs));
 	check(l9660_openat(&file, &dir, "KERNEL.BIN"));
@@ -53,4 +53,6 @@ void LoadKernel() {
 	void *ptr = (void *)0xffffffff80000000;
 	void *read = (void *)((uint8_t *)0xA00000 + (2048 * file.first_sector));
 	memcpy(ptr, read, file.length);
+
+	return file.length;
 }

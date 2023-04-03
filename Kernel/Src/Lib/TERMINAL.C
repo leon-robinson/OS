@@ -3,10 +3,13 @@
 #include <Lib/ASC16.H>
 #include <Lib/GRAPHICS.H>
 #include <Lib/IO.H>
+#include <Lib/MATH.H>
+
+#include <Mem/PMM.H>
 
 #include <Drivers/VBE.H>
 
-#define TOTAL_LINES 64
+#define TOTAL_LINES 72
 #define LINE_MAX_CHARS 80
 
 static volatile int line_index = 0;
@@ -16,7 +19,12 @@ static const char lines[TOTAL_LINES][LINE_MAX_CHARS];
 static boolean scrolling = false;
 
 static int GetAvailableLines() {
-	return (GetHeight() / 16) - 3;
+	u16 height = GetHeight();
+
+	if (height % 16 != 0)
+		return (ALIGN_DOWN(GetHeight() / 16, 16)) - 2;
+	else
+		return (GetHeight() / 16) - 3;
 }
 
 static void Scroll() {
@@ -69,6 +77,13 @@ void Enter() {
 		OutU8(0x64, 0xFE);
 
 		__asm__ volatile ("hlt");
+	} else if (Memcmp(cmd_clone, "allocpage", 9) == 0) {
+		void *page = AllocPage(1);
+		char buf[16];
+		ItoaU64((u64) page, buf, 16);
+		Print("Allocated page at: ");
+		Print(buf);
+		Print("\n");
 	} else {
 		if (cmd_len != 0)
 			Print("Unknown command!");
@@ -104,7 +119,7 @@ void TerminalUpdate() {
 		y += 16;
 	}
 
-	int cursor_y = ((line_index * 16) + y) - (GetHeight() - (16 * 3));
+	int cursor_y = (line_index * 16) + 16;
 	int cursor_x = (Strlen(lines[line_index]) * 8) + 10 + 16;
 	FillRect(cursor_x, cursor_y, 2, 16, 0xFFFFFFFF);
 }

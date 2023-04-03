@@ -2,6 +2,9 @@
 
 #include <Lib/MEM.H>
 #include <Lib/GRAPHICS.H>
+#include <Lib/TERMINAL.H>
+
+#include <Mem/PMM.H>
 
 static struct VBEInfo *vbe_info;
 
@@ -17,7 +20,7 @@ void VBEInit(struct VBEInfo *_vbe_info) {
 
 	Memset(video_memory, 0, GetSize());
 
-	first_buffer = (u32 *)0x100000;
+	first_buffer = (u32 *)(500UL * 1024UL * 1024UL);
 	second_buffer = (u32 *)(first_buffer + GetSize());
 
 	Memset(first_buffer, 0, GetSize());
@@ -32,6 +35,11 @@ void VBEUpdate() {
 	}
 
 	Memcpy(second_buffer, first_buffer, GetSize());
+}
+
+void VBEAllocBuffers() {
+	first_buffer = (u32 *)AllocPage((GetSize() / PAGE_SIZE) + 2);
+	second_buffer = (u32 *)AllocPage((GetSize() / PAGE_SIZE) + 2);
 }
 
 u16 GetWidth() {

@@ -9,6 +9,7 @@
 #include <Lib/GRAPHICS.H>
 #include <Lib/ASC16.H>
 #include <Lib/TERMINAL.H>
+#include <Lib/ALLOC.H>
 
 #include <Mem/PMM.H>
 
@@ -51,16 +52,23 @@ static void DrawCursor(u16 x, u16 y) {
 	}
 }
 
+extern char __kernel_start;
+extern char __kernel_end;
+
 void Main(struct BootInfo *boot_info) {
 	VBEInit(boot_info->vbe_info);
 
 	IDTInit();
 	PICInit();
 
-	PS2MouseInit();
+	u64 kernel_size = (u64)&__kernel_end - (u64)&__kernel_start;
 
-	PMMInit(boot_info->memory_info, boot_info->kernel_size, boot_info->kernel_start);
+	PMMInit(boot_info->memory_info, kernel_size, boot_info->kernel_start);
+	AllocInit();
+	TerminalInit();
 	VBEAllocBuffers();
+
+	PS2MouseInit();
 
 	for (; ; ) {
 		FillScreen(DEFAULT_COLOR);

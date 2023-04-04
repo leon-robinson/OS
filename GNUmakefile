@@ -4,7 +4,7 @@
 .PHONY: clean
 .PHONY: qemu
 
-override QEMU_FLAGS := -enable-kvm -cpu host -m 6G -cdrom OS.iso -boot d
+override QEMU_FLAGS := -enable-kvm -cpu host -m 4G -cdrom OS.iso -boot d
 
 all:
 	@echo "Running Bootloader build tasks..."

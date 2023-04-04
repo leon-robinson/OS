@@ -1,9 +1,12 @@
 
+; KERNEL SIZE LIMIT IS CURRENTLY APROX 6MiB.
+
 SECTION .kernel_entry
 
 GLOBAL Init
 EXTERN Main
 
 Init:
-	CALL Main
+	MOV RAX, Main
+	CALL RAX
 	JMP $

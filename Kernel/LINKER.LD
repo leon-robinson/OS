@@ -6,6 +6,8 @@ ENTRY(Init)
 SECTIONS {
 	. = 0xffffffff80000000;
 
+	__kernel_start = .;
+
 	.kernel_entry : {
 		*(.kernel_entry .kernel_entry.*)
 	}
@@ -35,4 +37,6 @@ SECTIONS {
 		*(.eh_frame)
 		*(.note .note.*)
 	}
+
+	__kernel_end = .;
 }

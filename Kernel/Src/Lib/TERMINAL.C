@@ -4,32 +4,38 @@
 #include <Lib/GRAPHICS.H>
 #include <Lib/IO.H>
 #include <Lib/MATH.H>
+#include <Lib/ALLOC.H>
 
 #include <Mem/PMM.H>
 
 #include <Drivers/VBE.H>
 
-#define TOTAL_LINES 72
-#define LINE_MAX_CHARS 80
-
 static volatile int line_index = 0;
-
-static const char lines[TOTAL_LINES][LINE_MAX_CHARS];
-
+static const char **lines;
 static boolean scrolling = false;
+static u64 total_lines = 0;
+static u64 line_size = 0;
 
 static int GetAvailableLines() {
 	u16 height = GetHeight();
+	return ((height - (height % 16)) / 16) - 3;
+}
 
-	if (height % 16 != 0)
-		return (ALIGN_DOWN(GetHeight() / 16, 16)) - 2;
-	else
-		return (GetHeight() / 16) - 3;
+void TerminalInit() {
+	total_lines = ALIGN_UP(GetHeight(), 16) / 16;
+	line_size = ALIGN_UP(GetWidth(), 8) / 8;
+	lines = Calloc(total_lines, line_size);
+}
+
+const char *GetLine(int i) {
+	u8 *ptr = (u8 *)lines;
+	ptr += i * line_size;
+	return (const char *) ptr;
 }
 
 static void Scroll() {
-	for (int i = 1; i < 64; i++)
-		Memmove((void *) lines[i - 1], (void *) lines[i], 80);
+	for (u64 i = 1; i < total_lines; i++)
+		Memmove((void *) GetLine(i - 1), (void *) GetLine(i), line_size);
 }
 
 static void NewLine() {
@@ -48,11 +54,11 @@ static void NewLine() {
 }
 
 void Enter() {
-	char *cmd = (char *)lines[line_index];
+	char *cmd = (char *)GetLine(line_index);
 	char *cmd2 = cmd + 2;
 
 	u32 cmd_len = Strlen(cmd);
-	static char cmd_clone[LINE_MAX_CHARS];
+	char *cmd_clone = Malloc(line_size);
 	Memset(cmd_clone, 0, sizeof(cmd_clone));
 
 	Memcpy(cmd_clone, cmd, cmd_len);
@@ -86,9 +92,10 @@ void Enter() {
 		Print("\n");
 	} else {
 		if (cmd_len != 0)
-			Print("Unknown command!");
-		Print("\n");
+			Print("Unknown command!\n");
 	}
+
+	Free(cmd_clone);
 }
 
 void TerminalUpdate() {
@@ -97,7 +104,7 @@ void TerminalUpdate() {
 	int available_lines = GetAvailableLines();
 
 	for (int i = 0; i < available_lines; i++) {
-		const char *line = (const char *)lines[i];
+		const char *line = (const char *)GetLine(i);
 		if (line == NULL) break;
 
 		u32 len = Strlen(line);
@@ -120,14 +127,14 @@ void TerminalUpdate() {
 	}
 
 	int cursor_y = (line_index * 16) + 16;
-	int cursor_x = (Strlen(lines[line_index]) * 8) + 10 + 16;
+	int cursor_x = (Strlen(GetLine(line_index)) * 8) + 10 + 16;
 	FillRect(cursor_x, cursor_y, 2, 16, 0xFFFFFFFF);
 }
 
 void Print(const char *str) {
 	int n = 0;
 
-	u32 str_len = Strlen((const char *) lines[line_index]);
+	u32 str_len = Strlen((const char *) GetLine(line_index));
 	if (str_len)
 		n = str_len;
 
@@ -146,7 +153,7 @@ void Print(const char *str) {
 			n--;
 		}
 
-		u8 *ptr = (u8 *)(lines[line_index]) + n;
+		u8 *ptr = (u8 *)(GetLine(line_index)) + n;
 		*ptr = c;
 
 		n++;
@@ -154,7 +161,7 @@ void Print(const char *str) {
 }
 
 void Clear() {
-	Memset((void *)lines, 0, sizeof(lines));
+	Memset((void *)lines, 0, total_lines * line_size);
 
 	line_index = 0;
 	scrolling = false;

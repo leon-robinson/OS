@@ -84,7 +84,7 @@ void PMMInit(struct MemoryInfo *mem_info, u64 kernel_size, u64 kernel_start) {
 	// Lock kernel.
 	u64 kernel_low = ALIGN_DOWN(kernel_start, PAGE_SIZE) / PAGE_SIZE;
 	u64 kernel_high = ALIGN_UP(kernel_start + kernel_size, PAGE_SIZE) / PAGE_SIZE;
-	for (u64 i = kernel_low; i < kernel_high + 2; i++)
+	for (u64 i = kernel_low; i < kernel_high; i++)
 		BitmapSet(bitmap, i, true);
 
 	mem_top = ALIGN_UP(mem_top, 0x40000000);
@@ -119,7 +119,11 @@ void *AllocPage(u32 count) {
 		last_index = 0;
 		ret = InnerAlloc(count, i);
 		if (ret == NULL) {
+			//Clear();
 			Print("Out of memory.");
+			TerminalUpdate();
+			VBEUpdate();
+			for (; ; );
 		}
 	}
 

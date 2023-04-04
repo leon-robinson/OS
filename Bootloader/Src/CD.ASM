@@ -76,7 +76,6 @@ InitializeCS:
 	TryVideoMode 1360,768
 	TryVideoMode 1280,1024
 	TryVideoMode 1024,768
-	TryVideoMode 800,600
 	TryVideoMode 640,480
 
 	JMP Error.Video

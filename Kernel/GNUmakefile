@@ -34,7 +34,8 @@ override LD_FLAGS += \
 	-static \
 	-m elf_x86_64 \
 	-z max-page-size=0x1000 \
-	-T LINKER.LD
+	-T LINKER.LD \
+	-Map=KERNEL.MAP
 
 override NASM_FLAGS += \
 	-f elf64

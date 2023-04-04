@@ -4,7 +4,7 @@
 #include <Lib/GRAPHICS.H>
 #include <Lib/TERMINAL.H>
 
-#include <Mem/PMM.H>
+#include <Lib/ALLOC.H>
 
 static struct VBEInfo *vbe_info;
 
@@ -38,8 +38,8 @@ void VBEUpdate() {
 }
 
 void VBEAllocBuffers() {
-	first_buffer = (u32 *)AllocPage((GetSize() / PAGE_SIZE) + 2);
-	second_buffer = (u32 *)AllocPage((GetSize() / PAGE_SIZE) + 2);
+	first_buffer = (u32 *)Malloc(GetSize());
+	second_buffer = (u32 *)Malloc(GetSize());
 }
 
 u16 GetWidth() {

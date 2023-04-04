@@ -51,6 +51,11 @@ override OBJ += $(patsubst ./Src/%.ASM,Obj/%.ASM.O,$(NASM_FILES))
 .PHONY: link
 
 all:
+	@mkdir -p Obj
+	@echo "  $(PREFIX) Assembling Src/HDD.S -> Obj/HDD.BIN"
+	@nasm -f bin Src/HDD.S -o Obj/HDD.BIN
+	@echo "  $(PREFIX) Assembling Src/LOADBOOT.S -> Obj/LOADBOOT.BIN"
+	@nasm -f bin Src/LOADBOOT.S -o Obj/LOADBOOT.BIN
 	@$(MAKE) link --quiet
 
 link: $(OBJ)

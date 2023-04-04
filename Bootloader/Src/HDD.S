@@ -1,0 +1,83 @@
+[BITS 16]
+[ORG 0x7C00]
+
+Entry:
+	JMP .SkipBPB
+	NOP
+.BPB:
+	TIMES 3-($-$$)      DB 0
+	.OEM_ID:            DB "TROUT   "
+	.SECTOR_SIZE:       DW 512
+	.SECTS_PER_CLUSTER: DB 0
+	.RESERVED_SECTS:    DW 0
+	.FAT_COUNT:         DB 0
+	.ROOT_DIR_ENTRIES:  DW 0
+	.SECTOR_COUNT:      DW 0
+	.MEDIA_TYPE:        DB 0
+	.SECTS_PER_FAT:     DW 0
+	.SECTS_PER_TRACK:   DW 18
+	.HEADS_COUNT:       DW 2
+	.HIDDEN_SECTS:      DD 0
+	.SECTOR_COUNT_BIG:  DD 0
+	.DRIVE_NUM:         DB 0
+	.RESERVED:          DB 0
+	.SIGNATURE:         DB 0
+	.VOLUME_ID:         DD 0
+	.VOLUME_LABEL:      DB "TROUT      "
+	.FILESYSTEM_TYPE:   TIMES 8 DB 0
+.SkipBPB:
+	CLI
+	CLD
+	JMP 0000H:.InitializeCS
+.InitializeCS:
+	XOR SI, SI
+	MOV DS, SI
+	MOV ES, SI
+	MOV SS, SI
+	MOV SP, 7C00H
+	STI
+
+	XOR AH, AH
+	MOV AL, 3
+	INT 10H
+
+	MOV DWORD[1000H], 1234ABCDH
+
+	MOV AH, 41H
+	MOV BX, 55AAH
+	INT 13H
+	JC .E
+	CMP BX, 0AA55H
+	JE .OK
+.E:
+	MOV AH, 0xE
+	MOV AL, 'E'
+	INT 10H
+	CLI
+	HLT
+	JMP $
+.OK:
+	MOV SI, ReadPacket
+	MOV AH, 42H
+	INT 13H
+	JNC .OK2
+.E2:
+	MOV AH, 0xE
+	MOV AL, 'R'
+	INT 10H
+	CLI
+	HLT
+	JMP $
+.OK2:
+	JMP 0DE00H
+
+ReadPacket:
+	DB 10H
+	DB 0
+	DW 1
+	DW 0DE00H
+	DW 0
+	DD 1
+	DD 0
+
+TIMES 1B0H-($-$$) DB 0

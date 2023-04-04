@@ -42,6 +42,12 @@ InitializeCS:
 
 	CALL ClearScreen
 
+	CMP DWORD[1000H], 1234ABCDH
+	JNE .SKIP
+
+	MOV BYTE[IS_HDD], 1
+
+.SKIP:
 	PUSH EDX ; Save boot drive ID.
 
 	CALL DiskExtCheck
@@ -70,7 +76,15 @@ InitializeCS:
 
 	POP EDX ; Restore boot drive ID.
 	CALL GetFSBlocks ; <- ECX
+
+	CMP BYTE[IS_HDD], 0
+	JE .SKIP1
+
+	CALL LoadFSHDD
+	JMP .SKIP2
+.SKIP1:
 	CALL LoadFS
+.SKIP2:
 
 	TryVideoMode 1920,1080
 	TryVideoMode 1360,768
@@ -274,6 +288,16 @@ UnrealGDT:
 GetFSBlocks:
 	MOV WORD[ReadPacket.BLOCKS], 1
 	MOV EAX, DWORD[BootInfo.PVD]
+
+	CMP BYTE[IS_HDD], 0
+	JE .SKIP
+
+	MOV ECX, 4
+	PUSH EDX
+	MUL ECX
+	POP EDX
+
+.SKIP:
 	MOV DWORD[ReadPacket.LBA], EAX
 	MOV WORD[ReadPacket.OFFSET], 2000H
 	MOV AH, 42H
@@ -320,6 +344,52 @@ LoadFS:
 	SUB ECX, 32
 	ADD DWORD[ReadPacket.LBA], 32
 	ADD EDI, (2048 * 32)
+
+	JMP .LOOP
+.DONE:
+	RET
+
+; ECX = FS blocks
+; DL = Drive ID
+LoadFSHDD:
+	PUSH EDX
+	MOV EAX, 4
+	MUL ECX
+	MOV ECX, EAX
+	POP EDX
+
+	MOV WORD[ReadPacket.BLOCKS], 32
+	MOV DWORD[ReadPacket.LBA], 0
+	MOV WORD[ReadPacket.OFFSET], 0
+	MOV WORD[ReadPacket.SEGMENT], 5000H
+
+	MOV EDI, 0A00000H
+.LOOP:
+	CMP ECX, 32
+	JNL .SKIP
+
+	MOV WORD[ReadPacket.BLOCKS], CX
+	MOV BX, 1
+.SKIP:
+	MOV AH, 42H
+	MOV SI, ReadPacket
+	INT 13H
+	JC Error.Read
+
+	PUSH ECX
+	PUSH EDI
+	MOV ESI, 50000H
+	MOV ECX, (512 * 32)
+	A32 REP MOVSB
+	POP EDI
+	POP ECX
+
+	CMP BX, 1
+	JE .DONE
+
+	SUB ECX, 32
+	ADD DWORD[ReadPacket.LBA], 32
+	ADD EDI, (512 * 32)
 
 	JMP .LOOP
 .DONE:
@@ -942,3 +1012,5 @@ LongMode:
 	POP RDI
 	MOV RAX, 0xffffffff80000000
 	JMP RAX
+
+IS_HDD: DB 0

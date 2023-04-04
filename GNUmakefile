@@ -4,7 +4,7 @@
 .PHONY: clean
 .PHONY: qemu
 
-override QEMU_FLAGS := -enable-kvm -cpu host -m 4G -cdrom OS.iso -boot d
+override QEMU_FLAGS := -enable-kvm -cpu host -m 4G -drive file=OS.iso,index=0,format=raw
 
 all:
 	@echo "Running Bootloader build tasks..."
@@ -29,6 +29,8 @@ iso:
 		--protective-msdos-label \
 		ISORoot -o OS.iso >/dev/null 2>&1
 	@rm -rf ISORoot
+	@dd if=Bootloader/Obj/HDD.BIN of=OS.iso bs=432 count=1 seek=0 conv=notrunc status=none
+	@dd if=Bootloader/Obj/LOADBOOT.BIN of=OS.iso bs=512 count=1 seek=1 conv=notrunc status=none
 
 clean:
 	@echo "Removing OBJ directories..."

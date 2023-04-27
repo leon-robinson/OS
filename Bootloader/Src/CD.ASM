@@ -614,6 +614,7 @@ EnterLongMode:
 
 	TIMES 2 NOP
 
+	CLI
 	LIDT [LongIDT]
 
 	MOV EAX, 10100000B

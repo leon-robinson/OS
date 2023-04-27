@@ -10,12 +10,12 @@ struct IDTEntry {
 	u16 mid;
 	u32 high;
 	u32 res1;
-} __attribute__((packed));
+} PACKED;
 
 struct IDTR {
 	u16 limit;
 	u64 addr;
-} __attribute__((packed));
+} PACKED;
 
 struct InterruptFrame {
 	u64 r15;
@@ -40,7 +40,7 @@ struct InterruptFrame {
 	u64 rflags;
 	u64 rsp;
 	u64 ss;
-} __attribute__((packed));
+} PACKED;
 
 void Vector0();
 void Vector1();

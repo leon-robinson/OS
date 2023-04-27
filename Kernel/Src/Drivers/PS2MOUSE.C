@@ -14,7 +14,7 @@ static u8 data[3] = {0,0,0};
 static short aX;
 static short aY;
 
-static __attribute__((always_inline)) inline void Wait() {
+static ALWAYS_INLINE inline void Wait() {
 	__asm__ volatile ("hlt");
 }
 

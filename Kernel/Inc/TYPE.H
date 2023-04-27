@@ -1,5 +1,8 @@
 #pragma once
 
+#define ALWAYS_INLINE __attribute__((always_inline))
+#define PACKED __attribute__((packed))
+
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef int i32;
